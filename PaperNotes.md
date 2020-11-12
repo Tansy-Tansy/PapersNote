@@ -821,8 +821,71 @@ $$
 ### 10. Hypergraph Neural Networks
 
 1. **出版**：AAAI 2019
+
 2. **源码**：[https://github.com/iMoonLab/HGNN](https://github.com/iMoonLab/HGNN)
-3. 
+
+3. **类型**：超图，即一条边连接多个节点
+
+4. **目的**：研究超图结构上高阶的数据关联性；处理多模态数据；缓解传统的超图学习方法具有高计算复杂度以及存储损失的问题。
+
+5. **贡献**：
+
+   * **提出HGNN模型**：可用公式表示复杂的高阶数据关联性，并且利用超边卷积操作能有效地处理多模态数据或特征。GCN是HGNN的一个特例，即具有2阶超边的超图。
+   * **HGNN模型的有效性**：在引文网络分类和视觉对象分类任务中具有有效性，同时在处理多模态数据时有更好的性能。
+
+6. **思想**：传统图中，每条边的度均设置为2，即每条边仅连接2个节点。而超图通过使用其无限制“度”的超边编码高阶数据关联性（超越成对的连接），其利用灵活的超边易扩展成多模态、异质的数据表示。一个超图可以通过合并邻接矩阵，联合使用多模态数据来生成超图。
+
+   <img src="PaperNotes.assets/image-20201112193204459.png" alt="image-20201112193204459" style="zoom:67%;" />
+
+   <img src="PaperNotes.assets/image-20201112200341175.png" alt="image-20201112200341175" style="zoom:80%;" />
+
+   ​		定义超图为 $\mathcal G = (\mathcal V,\mathcal E,\mathrm W)$ ，其中 $\mathcal V$ 为节点集合， $\mathcal E$ 为超边集合，每条超边被 $\mathrm W$ （对角边权矩阵）分配一个权重。用关联矩阵 $\mathrm H \in \mathbb R^{\mathcal {|V| \times |E|}}$ 表示超图 $\mathcal G$ ：
+   $$
+   h(v, e)=\left\{\begin{array}{ll}
+   1, & \text { if } v \in e \\
+   0, & \text { if } v \notin e
+   \end{array}\right.
+   $$
+   ​		节点的度被定义为 $d(v)=\sum_{e \in \mathcal{E}} \omega(e) h(v, e)$ ，超边的度被定义为 $\delta(e)=\sum_{v \in \mathcal{V}} h(v, e)$。$\mathrm D_e$ 和 $\mathrm D_v$ 分别表示边和节点的度矩阵（均为对角矩阵）。
+
+   ​		节点分类任务的目标函数为：
+   $$
+   \arg \min _{f}\left\{\mathcal{R}_{{emp}}(f)+\Omega(f)\right\}
+   $$
+   ​		其中，$\mathcal{R}_{{emp}}(f)$ 表示监督的经验损失（个人理解为<font color='red'>交叉熵</font>），$f(\cdot)$  表示分类函数（个人理解为<font color='red'>前向传播函数</font>）。$\Omega(f)$ 表示超图上的归一化处理，$\Delta = \mathrm I-\mathrm{D}_{v}^{-1 / 2} \mathrm{HWD}_{e}^{-1} \mathrm{H}^{\top} \mathrm{D}_{v}^{-1 / 2}$  ，则 $\Omega(f)$ 定义为 
+   $$
+   \Omega(f)=f^{\top} \Delta
+   $$
+   ​		HGNN模型卷积层公式为：
+   $$
+   \mathrm{X}^{(l+1)}=\sigma\left(\mathrm{D}_{v}^{-1 / 2} \mathrm{HWD}_{e}^{-1} \mathrm{H}^{\top} \mathrm{D}_{v}^{-1 / 2} \mathrm{X}^{(l)} \Theta^{(l)}\right)
+   $$
+   ​		其中，边权矩阵 $\mathrm W$ 为单位矩阵，即所有超边具有相同权重。卷积核 $\Theta$ 为可训练的参数矩阵。$\sigma$ 表示非线性激活函数，$\mathrm X^{(l)} \in \mathbb R^{N \times C}$ 表示 $l$ 层的节点表示，$\mathrm X^{(0)}=\mathrm X$。
+
+   <img src="PaperNotes.assets/image-20201112211511659.png" alt="image-20201112211511659" style="zoom:67%;" />
+
+   
+
+   > At first, the initial node feature $\mathrm X^{(1)}$ is processed by learnable filter matrix $\Theta^{(1)}$ to extract $\mathrm C_2$-dimensional feature. Then, then ode feature is gathered according to the hyperedge to form the hyperedge feature $\mathbb R^{E \times C_2}$ , which is implemented by the multiplication of  $\mathrm H^{\top} \in \mathbb R^{\mathrm E \times \mathrm N}$. Finally the output node feature is obtained by aggregating their related hyperedge feature, which is achieved by multiplying matrix $\mathrm H$.
+
+7. **实验结果**
+
+* **引文网络分类**
+
+  * 数据集：Cora、Pumbed
+
+    每个节点的特征都是文本的词袋表示；节点的连接表示引用关系。
+
+  * 流程：
+
+    * 构建超图：假设 $N$ 个数据，根据图上的邻接关系，用每条超边连接每个节点和其邻节点，即得到 $N$ 个超边以及 $\mathrm H \in \mathbb R^{\mathrm {N \times N}}$。
+    * 建模：使用2层HGNN模型；softmax函数用来产生预测标签；在训练期间，交叉熵损失反向传播以更新参数。
+
+  * 实验结果
+
+    <img src="PaperNotes.assets/image-20201112215931434.png" alt="image-20201112215931434" style="zoom:67%;" />
+
+* **视觉对象分类**（详见论文）
 
 
 
