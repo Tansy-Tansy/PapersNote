@@ -824,7 +824,7 @@ $$
 
 2. **源码**：[https://github.com/iMoonLab/HGNN](https://github.com/iMoonLab/HGNN)
 
-3. **类型**：超图，即一条边连接多个节点
+3. **类型**：无向超图，即一条边连接多个节点
 
 4. **目的**：研究超图结构上高阶的数据关联性；处理多模态数据；缓解传统的超图学习方法具有高计算复杂度以及存储损失的问题。
 
@@ -886,6 +886,97 @@ $$
     <img src="PaperNotes.assets/image-20201112215931434.png" alt="image-20201112215931434" style="zoom:67%;" />
 
 * **视觉对象分类**（详见论文）
+
+
+
+### 11.HyperGCN: A new method of training graph convolutional networks on hypergraphs
+
+1. **出版**：NIPS 2019
+
+2. **源码**：[https://github.com/malllabiisc/HyperGCN](https://github.com/malllabiisc/HyperGCN)
+
+3. **类型**：无向超图
+
+4. **目的**：解决基于超图的半监督学习任务
+
+5. **贡献**：
+
+   * 我们提出了HyperGCN，利用超图的谱理论在超图上训练GCN，并介绍了其变体FastHyperGCN；
+   * 在真实世界超图上解决了SSL和组合优化问题，且通过实验证明该算法比较高效。
+   * 全面讨论了HyperGCN与HGNN的区别与优势。
+
+6. **思想**：
+
+   ​		HyperGCN的本质是将超图转为图，再利用图卷积操作解决问题。HGNN是利用连通分量拓展（clique expansion）拟合超边，即每条超边上的所有顶点均两两成对连接，则具有 $n$ 个顶点的超边拓展后有 $C^2_n$ 条边。而HyperGCN利用一组连接超边顶点的成对边来拟合超边，其拓展后的边与超边大小成线性关系$\mathcal O(n)$（2$n$-3）。
+
+   **规则**：在同一条超边上的超节点是相似的，因此共享同种标签。在任何超边 $e$ 上，若 $\max _{i, j \in e}|| h_{i}-h_{j} \|^{2}$ 很小，则说明该超边上的所有超节点彼此接近。
+
+   * **1-hyperGCN**（每条超边用一条成对边拟合）
+
+     * 构建超图拉普拉斯矩阵（将超图转为图）
+
+       ​		给定一个定义在超节点上的实值信号 $S \in \mathbb R^n$ （$n = |V|$ 为超节点数量），计算其超图拉普拉斯矩阵 $L(S)$
+
+       1. 对于每条超边 $e \in E$，令 $(\left.i_{e}, j_{e}\right):=\operatorname{argmax}_{i, j \in e}\left|S_{i}-S_{j}\right|$ ，即 $(i_e,j_e)$ 表示在超边 $e$ 中距离最远的两个节点；
+       2. 通过增加边 $\left\{\left\{i_e,j_e\right\}:e \in E\right\}$ 构建定义在顶点集 $V$ 的加权图 $G_S$ ，其边权为 $w\left(\left\{i_{e}, j_{c}\right\}\right):=w(e)$ （超边 $e$ 的权重）。令 $A_S$ 为简单图 $G_S$ 的加权邻接矩阵；
+       3. 对称正则化的超图拉普拉斯矩阵：$L(S):=\left(I-D^{-\frac{1}{2}} A_{S} D^{-\frac{1}{2}}\right) S$
+
+     * 卷积操作
+
+     $$
+     h_{v}^{(\tau+1)}=\sigma\left(\left(\Theta^{(\tau)}\right)^{T} \sum_{u \in \mathcal{N}(v)}\left(\left[\bar{A}_{S}^{(\tau)}\right]_{v, u} \cdot h_{u}^{(\tau)}\right)\right)
+     $$
+
+     ​		其中，$\tau$ 为epoch数，$\bar{A}_{S}$ 表示 $G_S$ 的正则化邻接矩阵。注意：邻接矩阵每次迭代时均被重新计算。
+
+     <img src="PaperNotes.assets/image-20201123124721719.png" alt="image-20201123124721719" style="zoom:67%;" />
+
+     > Figure 1 shows a hypernode $v$ with five hyperedges incident on it. We consider exactly one representative simple edge for each hyperedge $e \in E$ given by $(i_e,j_e)$ where $(i_e,j_e)= \text{argmax}_{i,j \in e} \left\|\left(\Theta^{(\tau)}\right)^{T}\left(h_{i}^{(\tau)}-h_{j}^{(\tau)}\right)\right\|_{2}$ for epoch $\tau$ . Because of this consideration, the hypernode $v$ may not be a part of all representative simple edges (only three shown in figure). We then use traditional Graph Convolution Operation on $v$ considering only the simple edges incident on it. Note that we apply the operation on each hypernode $v \in V$ in each epoch $\tau$ of training until convergence.
+
+     **总结**：只连接距离最远的两个核心点，同一个超边中的其他点都直接丢弃（也就是drop edge）。每个epoch 每层进行更新。
+
+     <img src="PaperNotes.assets/image-20201123143101641.png" alt="image-20201123143101641" style="zoom:67%;" />
+
+   * **HyperGCN**
+
+     ​		利用超节点 $K_{e}:=\left\{k \in e: k \neq i_{e}, k \neq j_{c}\right\}$ 作为介质（mediators），并分别连接 $i_e$ 和 $j_e$。每条超边所拓展出的所有小边权重之和为1。超边 $e$ 拓展成 $(2|e|-3)$ 条小边，将每个边权设置为 $\frac{1}{2|e|-3}$。
+
+     > 由于Laplacian矩阵中元素是经过正则化的，所以要求每个超边中的小边权重和都要为1。而对于具有中介的图来说，在超边中每增加一个点都要多两条边，即$a_n-a_{n-1}=2=d，a_1=1，n=1,2,3...$，求解等差数列可以得到边数量为 $2|e|-3$，所以权重选择为 $\frac {1}{2|e|-3}$。$|e|$ 表示超边对应连接的节点数。
+
+     <img src="PaperNotes.assets/image-20201123142203819.png" alt="image-20201123142203819" style="zoom:67%;" />
+
+     **总结**：对于每条超边，先选距离最远的两个核心点，其他点再跟他相连（也就是在邻接阵中分配权重），然后成为加权普通图。每层每个epoch进行更新。
+
+     <img src="PaperNotes.assets/image-20201123143223478.png" alt="image-20201123143223478" style="zoom:67%;" />
+
+   * **FastHyperGCN**
+
+     ​		利用初始的特征矩阵 $X$（无权重）构建超图拉普拉斯矩阵（具有介质）。注意：超图的拉普拉斯矩阵在训练之前只被计算一次。
+
+     <img src="PaperNotes.assets/image-20201123145232395.png" alt="image-20201123145232395" style="zoom:67%;" />
+
+7. **实验结果**
+
+   * 半监督学习任务
+
+   
+
+   <img src="PaperNotes.assets/image-20201123145324622.png" alt="image-20201123145324622" style="zoom: 80%;" />
+
+   <img src="PaperNotes.assets/image-20201123150049067.png" alt="image-20201123150049067" style="zoom: 80%;" />
+
+   ​		HyperGCN模型实验效果优于1-HyperGCN，原因在于在HyperGCN模型中每条超边的所有顶点均参与了超图拉普拉斯矩阵的构建，而1-HyperGCN仅有两个顶点。
+
+   ​		在训练集中加入噪声，超边所有连接的顶点属于同一类称为纯的，而超边不全是同一类的称为有噪声的。表5结果，发现加入越多噪声对我们HpyerGCN越有利，这是因为HGCN其连接的是更多相似的节点。
+
+   （其他实验具体见论文）
+
+### 12.HNHN: Hypergraph Networks with Hyperedge Neurons（20-ICML）
+
+1. **出版**：ICML 2020
+2. **源码**：[https://github.com/twistedcubic/HNHN](https://github.com/twistedcubic/HNHN)
+
+
 
 
 
