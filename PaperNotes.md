@@ -1,3 +1,5 @@
+
+
 # Paper Notes
 
 [TOC]
@@ -963,7 +965,7 @@ $$
 
    <img src="PaperNotes.assets/image-20201123145324622.png" alt="image-20201123145324622" style="zoom: 80%;" />
 
-   <img src="PaperNotes.assets/image-20201123150049067.png" alt="image-20201123150049067" style="zoom: 80%;" />
+   ![image-20201123150021176](PaperNotes.assets/image-20201123150021176.png)
 
    ​		HyperGCN模型实验效果优于1-HyperGCN，原因在于在HyperGCN模型中每条超边的所有顶点均参与了超图拉普拉斯矩阵的构建，而1-HyperGCN仅有两个顶点。
 
@@ -971,12 +973,42 @@ $$
 
    （其他实验具体见论文）
 
-### 12.HNHN: Hypergraph Networks with Hyperedge Neurons（20-ICML）
-
-1. **出版**：ICML 2020
-2. **源码**：[https://github.com/twistedcubic/HNHN](https://github.com/twistedcubic/HNHN)
 
 
+### 12.Line Hypergraph Convolution Network:Applying Graph Convolution for Hypergraphs
+
+1. **出版**：ArXiv 2020
+
+2. **源码**： [https://bit.ly/2qNmbRn](https://bit.ly/2qNmbRn)貌似打不开？？
+
+3. **类型**：无向超图；线图(line  graph)
+
+4. **目的**：首次在超图上引入线图的概念，在超边大小可变的超图上实现图卷积。
+
+5. **思想**：在超图上构建线图如下：
+
+   * **线图上节点和边的确定**：为每条超边 $e$ 都创建节点 $\mathbf v_e$，即 $V_{L}=\left\{\mathbf{v}_{e} \mid e \in E\right\}$。并且如果两条超边至少共享一个超节点，那么其在线图上对应的两节点相互连接，即 $E_{L}=\left\{\left\{\mathbf{v}_{e_{p}}, \mathbf{v}_{e_{q}}\right\}|| e_{p} \cap e_{q} \mid \geq 1, e_{p}, e_{q} \in E\right\}$ 。其对应的边权计算如下：
+     $$
+     w_{p, q}=\frac{\left|e_{p} \cap e_{q}\right|}{\left|e_{p} \cup e_{q}\right|}
+     $$
+
+   * **线图上节点特征的确定**：对于线图上的节点 $\mathbf v_e \in V_L$ ，其特征为对应的超边 $e$ 上所有超节点的平均特征，即 $\mathrm{X}_{\mathbf{v}_{e}}=\frac{\sum_{v \in e} x_{v}}{|e|}$ 。
+
+   * **线图上节点标签的确定**：对于线图上的节点 $\mathbf v_e \in V_L$ ，只要对应的超边 $e$ 上至少存在一个有标签的超节点，则 $\mathbf v_e$ 具有标签。并且其标签类型取决于对应超边 $e$ 上出现次数最多的超节点类别。
+
+     <img src="PaperNotes.assets/image-20201130191829993.png" alt="image-20201130191829993" style="zoom:67%;" />
+
+     ​		在线图中应用两层图卷积，其中 $\hat A = A+I$ 是线图上的邻接矩阵，即 $a_{pq}=w_{pq}$ 。$\sigma()$表示非线性的激活函数，作者采用$\text{ReLU}$函数。$H$ 是线图上最后一层隐藏层的节点表示，被喂入softmax层后使用交叉熵进行节点分类。
+     $$
+     H=\sigma\left(\hat{D}^{-\frac{1}{2}} \hat{A} \hat{D}^{-\frac{1}{2}} \sigma\left(\hat{D}^{-\frac{1}{2}} \hat{A} \hat{D}^{-\frac{1}{2}} \mathrm{X} \Theta^{(1)}\right) \Theta^{(2)}\right)
+     $$
+     ​		通过线图上图卷积的训练，我们可得到线图上的所有节点（超图上的超边）的特征表示和其标签类别。那么对于超图上未标记的超节点而言，其标签取决于所属的所有超边中占比最高的标签。而其特征表示为所属的所有超边的平均特征表示。
+
+   <img src="PaperNotes.assets/image-20201130200231485.png" alt="image-20201130200231485" style="zoom:67%;" />
+
+6. **实验结果**
+
+<img src="PaperNotes.assets/image-20201130215839849.png" alt="image-20201130215839849" style="zoom:67%;" />
 
 
 
