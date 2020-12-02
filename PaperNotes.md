@@ -1010,7 +1010,65 @@ $$
 
 <img src="PaperNotes.assets/image-20201130215839849.png" alt="image-20201130215839849" style="zoom:67%;" />
 
+### 13.Learning Graph Pooling and Hybrid Convolutional Operations for Text Representations
 
+1. **出版**：WWW 2019
+
+2. **源码**：[https://github.com/HongyangGao/hConv-gPool-Net](https://github.com/HongyangGao/hConv-gPool-Net)
+
+3. **类型**：无向图
+
+4. **目的**：hConv-gPool-Net模型提出新的卷积和池化操作，以快速增加感受野的范围，并自动提取<u>具有语序信息</u>的高级特征。
+
+5. **思想**：传统的GCN模型及其变体没有考虑文本中的语序信息，即不能自动提取节点的高级特征，同时目前还没有有效的池化操作应用在图模型上。因此该模型采用hConv卷积操作和gPool池化操作解决文本分类问题。
+   * **构图**：采用Gow（graph-of-words）方法构建一个无权无向图，即weight=01。首先对文本进行预处理（分词和数据清洗等），基于词性标注选择文本中不同的术语terms（动词、形容词或名词等）作为节点，而两个术语terms间是否连线取决于其在滑窗内的词共现关系。滑窗大小取决于所有文本的平均长度。
+   
+   * **gPool层**：与《Graph U-nets》中类似，具体细节可参考
+   
+     <img src="PaperNotes.assets/image-20201202152110822.png" alt="image-20201202152110822" style="zoom: 67%;" />
+   
+   <img src="PaperNotes.assets/image-20201202152140291.png" alt="image-20201202152140291" style="zoom:67%;" />
+   
+   * **hConv层**：结合传统的GCN操作以及一维CNN卷积操作。对于特征矩阵 $X^{\ell}$ ，列维度被视作通道维度（channel dimension），即列通道始终为1。$X_1^{\ell+1}$ 和 $X_2^{\ell+1}$ 通过矩阵拼接输出 $X^{\ell+1}$ 。
+   
+     <img src="PaperNotes.assets/image-20201202152941861.png" alt="image-20201202152941861" style="zoom: 80%;" />
+   
+     ​		GCN和CNN两者操作互补。为了避免产生较多的参数，在CNN层中一般采用尺寸较小的卷积核，从而使特征图上的感受野增长缓慢，而<u>GCN操作可通过节点间的连接快速增大感受野</u>。与此同时，由于没有可训练的空间卷积核，所以GCN操作不能自动提取<u>具有语序信息的文本特征</u>，而CNN可以弥补这一缺点。因此hConv操作应用在基于本文的图数据上特别有效。
+   
+     <img src="PaperNotes.assets/image-20201202154014379.png" alt="image-20201202154014379" style="zoom:67%;" />
+
+6. **实验**
+
+   * **网络结构**
+
+     * **GCN-Net**：堆叠4个标准的GCN层，从第二层开始，在每层的输出结果中应用一个全局最大池化层（global max-pooling layer），将这些池化层的输出结果拼接在一起，并喂进全连接层以进行最终的预测。
+
+     * **GCN-gPool-Net**：基于GCN-Net，从第二层开始在GCN层后面增加一个gPool层（最后一层除外）。对于每层gPool层而言，挑选超参数 $k$ 使节点数减少至一半。其他部分与GCN-Net保持一致。
+
+     * **hConv-Net**：在GCN-Net中，用hConv层代替所有的GCN层，其每层输出的特征图深度与对应的GCN层保持一致。假设最初的第 $i$ 层GCN层输出 $n_{out}$ ，那么对应的CNN卷积层和GCN层均输出 $\frac{n_{out}}{2}$ 个特征图。通过拼接，hConv层输出 $n_{out}$ 个特征图。其他部分与GCN-Net保持一致。
+
+     * **hConv-gPool-Net**：基于hConv-Net，在除第一层和最后一层外的每层hConv层后面增加gPool层，如图所示：
+
+       <img src="PaperNotes.assets/image-20201202175452467.png" alt="image-20201202175452467" style="zoom:80%;" />
+
+   * **数据集**：
+
+     * **AG’s News** is a news dataset containing four topics: World, Sports, Business and Sci/Tech. The task is to classify each news into one of the topics.
+     * **Dbpedia** ontology dataset contains 14 ontology classes. It is constructed by choosing 14 non-overlapping classes from the DBPedia 2014 dataset. Each sample contains a title and an abstract corresponding to a Wikipedia article.
+     * **Yelp Polarity** dataset is obtained from the Yelp Dataset Challenge in 2015. Each sample is a piece of review text with a binary label (negative or positive).
+     * **Yelp Full** dataset is obtained from the Yelp Dataset Challenge in 2015, which is for sentiment classification. It contains five classes corresponding to the movie review star ranging from 1 to 5.
+
+   * **实验结果**
+
+     * **文本分类**
+
+     <img src="PaperNotes.assets/image-20201202175918866.png" alt="image-20201202175918866" style="zoom:67%;" />
+
+     * **消融实验**：与《Graph U-nets》类似
+
+       <img src="PaperNotes.assets/image-20201202180237594.png" alt="image-20201202180237594" style="zoom:67%;" />
+
+       <img src="PaperNotes.assets/image-20201202180305994.png" alt="image-20201202180305994" style="zoom:67%;" />
 
 ## 待读
 
