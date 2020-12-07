@@ -891,7 +891,7 @@ $$
 
 
 
-### 11.HyperGCN: A new method of training graph convolutional networks on hypergraphs
+### 11. HyperGCN: A new method of training graph convolutional networks on hypergraphs
 
 1. **出版**：NIPS 2019
 
@@ -975,7 +975,7 @@ $$
 
 
 
-### 12.Line Hypergraph Convolution Network:Applying Graph Convolution for Hypergraphs
+### 12. Line Hypergraph Convolution Network:Applying Graph Convolution for Hypergraphs
 
 1. **出版**：ArXiv 2020
 
@@ -1010,7 +1010,7 @@ $$
 
 <img src="PaperNotes.assets/image-20201130215839849.png" alt="image-20201130215839849" style="zoom:67%;" />
 
-### 13.Learning Graph Pooling and Hybrid Convolutional Operations for Text Representations
+### 13. Learning Graph Pooling and Hybrid Convolutional Operations for Text Representations
 
 1. **出版**：WWW 2019
 
@@ -1021,7 +1021,9 @@ $$
 4. **目的**：hConv-gPool-Net模型提出新的卷积和池化操作，以快速增加感受野的范围，并自动提取<u>具有语序信息</u>的高级特征。
 
 5. **思想**：传统的GCN模型及其变体没有考虑文本中的语序信息，即不能自动提取节点的高级特征，同时目前还没有有效的池化操作应用在图模型上。因此该模型采用hConv卷积操作和gPool池化操作解决文本分类问题。
-   * **构图**：采用Gow（graph-of-words）方法构建一个无权无向图，即weight=01。首先对文本进行预处理（分词和数据清洗等），基于词性标注选择文本中不同的术语terms（动词、形容词或名词等）作为节点，而两个术语terms间是否连线取决于其在滑窗内的词共现关系。滑窗大小取决于所有文本的平均长度。
+   * **构图**：采用Gow（graph-of-words）方法构建一个无权无向图，即weight=01。首先对文本进行预处理（分词和数据清洗等），基于词性标注选择文本中不同的术语terms（动词、形容词或名词等）作为节点，而两个术语terms间是否连线取决于其在滑窗内的词共现关系。滑窗大小取决于所有文本的平均长度。该模型通过拼接词嵌入（word embedding）和位置嵌入（position embedding）以初始化节点特征。对于词嵌入，其采用fastText预训练后的词向量，有效避免较多的未登录词。同时位置嵌入方法可将词在文本中的位置编码成独热向量。
+   
+     <img src="PaperNotes.assets/image-20201204110042644.png" alt="image-20201204110042644" style="zoom:67%;" />
    
    * **gPool层**：与《Graph U-nets》中类似，具体细节可参考
    
@@ -1034,9 +1036,9 @@ $$
      <img src="PaperNotes.assets/image-20201202152941861.png" alt="image-20201202152941861" style="zoom: 80%;" />
    
      ​		GCN和CNN两者操作互补。为了避免产生较多的参数，在CNN层中一般采用尺寸较小的卷积核，从而使特征图上的感受野增长缓慢，而<u>GCN操作可通过节点间的连接快速增大感受野</u>。与此同时，由于没有可训练的空间卷积核，所以GCN操作不能自动提取<u>具有语序信息的文本特征</u>，而CNN可以弥补这一缺点。因此hConv操作应用在基于本文的图数据上特别有效。
-   
-     <img src="PaperNotes.assets/image-20201202154014379.png" alt="image-20201202154014379" style="zoom:67%;" />
 
+     <img src="PaperNotes.assets/image-20201202154014379.png" alt="image-20201202154014379" style="zoom:67%;" />
+   
 6. **实验**
 
    * **网络结构**
@@ -1069,6 +1071,14 @@ $$
        <img src="PaperNotes.assets/image-20201202180237594.png" alt="image-20201202180237594" style="zoom:67%;" />
 
        <img src="PaperNotes.assets/image-20201202180305994.png" alt="image-20201202180305994" style="zoom:67%;" />
+
+
+
+### 14. Inductive Representation Learning on Large Graphs
+
+### 15. Simplifying Graph Convolutional Networks
+
+
 
 ## 待读
 
